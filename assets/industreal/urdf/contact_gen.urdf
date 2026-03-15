@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="contact_gen">
+    <link name="contact_gen">
+        <visual>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/contact_gen.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/contact_gen.obj"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+    </link>
+</robot>

@@ -1,0 +1,36 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - DrawerTaskPulling
+    - _self_
+
+name: DrawerTaskPulling
+physics_engine: ${..physics_engine}
+
+env:
+    obsDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'tactile_force_field_left': [9, 7, 2],
+        'tactile_force_field_right': [9, 7, 2]
+    }
+    stateDims: {
+      ee_pos: [3],
+      ee_quat: [4],
+      dof_pos: [10],
+      dof_vel: [10],
+      ee_lin_vel: [3],
+      ee_ang_vel: [3],
+      drawer_handle_pos: [3],
+      drawer_handle_quat: [4],
+      drawer_handle_left_elastomer_force: [3],
+      drawer_handle_right_elastomer_force: [3],
+      drawer_box_left_fingerbox_contact_force: [3],
+      drawer_box_right_fingerbox_contact_force: [3],
+      drawer_box_panda_leftfinger_contact_force: [3],
+      drawer_box_panda_rightfinger_contact_force: [3]
+    }
+sensor:
+    hydroshear:
+        dilate_scale: ${eval:"1000 / 0.065 * 2.5"}

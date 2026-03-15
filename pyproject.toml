@@ -1,0 +1,53 @@
+[project]
+name = "rl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "ipdb>=0.13.13",
+    "numpy==1.22.0",
+    "torch",
+    "omegaconf",
+    "termcolor",
+    "jinja2",
+    "hydra-core>=1.2",
+    "pyvirtualdisplay",
+    "urdfpy==0.0.22",
+    "pysdf==0.1.9",
+    "warp-lang==0.10.1",
+    "trimesh==3.23.5",
+    "gym==0.23.0",
+    "tensorboard==2.8.0",
+    "tensorboardX==2.5",
+    "PyYAML==6.0",
+    "psutil==5.9.0",
+    "setproctitle==1.2.2",
+    "opencv-python",
+    "wandb==0.12.11",
+    "ale-py==0.7",
+    "AutoROM==0.4.2",
+    "envpool==0.6.1",
+    "pytorch_volumetric",
+    "pytorch_kinematics",
+    "protobuf==3.20.0",
+    "scikit-image",
+    "point_cloud_utils",
+    "moviepy",
+    "ray",
+    "gymnasium",
+    "yourdfpy",
+    "scipy",
+    "urchin",
+    "vedo",
+    "viser",
+    "tyro"
+]
+
+[dependency-groups]
+dev = [
+    "rl",
+]
+
+[tool.setuptools.packages.find]
+include = ["rl*"]

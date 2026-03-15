@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="peg_mountain">
+    <link name="peg_mountain">
+        <visual>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/peg_mountain.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/peg_mountain.obj"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+    </link>
+</robot>

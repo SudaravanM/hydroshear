@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="fmb_peg_mid_split">
+    <link name="fmb_peg_mid_split">
+        <visual>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/fmb_peg_mid_split.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/fmb_peg_mid_split.obj"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+    </link>
+</robot>

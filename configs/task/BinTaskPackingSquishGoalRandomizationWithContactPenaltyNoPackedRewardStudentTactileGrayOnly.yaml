@@ -1,0 +1,18 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - BinTaskPackingSquishGoalRandomizationWithContactPenaltyNoPackedRewardStudent
+    - _self_
+
+env:
+    obsDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'eef_to_goal_pos': [3],
+        'eef_to_goal_quat': [4],
+        'left_tactile_camera_taxim': [80, 60, 3],
+        'right_tactile_camera_taxim': [80, 60, 3],
+        'left_tactile_camera_taxim_gray': [80, 60, 1],
+        'right_tactile_camera_taxim_gray': [80, 60, 1],
+    }

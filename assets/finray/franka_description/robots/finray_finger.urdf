@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<robot name="finray_finger">
+    <material name="GreenFinger"><color rgba="0.0 1.0 0.0 1.0"/></material>
+    <link name="finray_finger">
+        <visual>
+        <origin rpy="0 0 3.14159265359" xyz="0 0 0"/>
+        <geometry>
+            <mesh filename="package://franka_description/meshes/visual/finray_finger.obj"/>
+        </geometry>
+        <material name="GreenFinger"/>
+        </visual>
+        <collision>
+        <origin rpy="0 0 3.14159265359" xyz="0 0 0"/>
+        <geometry
+            <mesh filename="package://franka_description/meshes/collision/finray_finger.obj"/>
+        </geometry>
+        </collision>
+    </link>
+
+    <joint name="finray_finger_tip_joint" type="fixed">
+        <parent link="finray_finger"/>
+        <child link="finray_finger_tip"/>
+        <origin rpy="0 0 0" xyz="0.0 0.0015 0.143"/>
+    </joint>
+    <link name="finray_finger_tip">
+    </link>
+</robot>

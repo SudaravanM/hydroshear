@@ -1,0 +1,12 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - BookTaskShelvingSquish
+    - _self_
+
+randomize:
+    preset_object_squish_noise_range: [-0.005, 0.00]
+rl:
+    contact_penalty_scale: 0.001
+    close_error_thresh: 0.02

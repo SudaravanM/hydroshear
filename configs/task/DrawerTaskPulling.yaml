@@ -1,0 +1,160 @@
+
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - HydroShearTrainBase
+    - _self_
+
+name: DrawerTaskPulling
+physics_engine: ${..physics_engine}
+
+sim:
+    disable_gravity: True
+
+env:
+    task_type: insertion #  insertion, placement, screwing
+    numEnvs: ${resolve_default:128,${...num_envs}}
+    numObservations: 21
+    numActions: 7
+    franka_urdf_file: 'amazon_panda_wsg50.urdf'
+
+    additional_obs: {}
+    rollout: False 
+
+    obsDims: {
+      ee_pos: [3],
+      ee_quat: [4],
+      dof_pos: [10],
+      dof_vel: [10],
+      ee_lin_vel: [3],
+      ee_ang_vel: [3],
+      drawer_handle_pos: [3],
+      drawer_handle_quat: [4],
+      drawer_handle_left_elastomer_force: [3],
+      drawer_handle_right_elastomer_force: [3],
+      drawer_box_left_fingerbox_contact_force: [3],
+      drawer_box_right_fingerbox_contact_force: [3],
+      drawer_box_panda_leftfinger_contact_force: [3],
+      drawer_box_panda_rightfinger_contact_force: [3]
+    }
+    stateDims: {
+      ee_pos: [3],
+      ee_quat: [4],
+      dof_pos: [10],
+      dof_vel: [10],
+      ee_lin_vel: [3],
+      ee_ang_vel: [3],
+      drawer_handle_pos: [3],
+      drawer_handle_quat: [4],
+      drawer_handle_left_elastomer_force: [3],
+      drawer_handle_right_elastomer_force: [3],
+      drawer_box_left_fingerbox_contact_force: [3],
+      drawer_box_right_fingerbox_contact_force: [3],
+      drawer_box_panda_leftfinger_contact_force: [3],
+      drawer_box_panda_rightfinger_contact_force: [3]
+    }
+    num_gripper_move_sim_steps: 100  # number of timesteps to reserve for moving gripper before first step of episode
+    franka_open_gripper_width: 0.055   # finger joint target to open gripper
+    franka_gripper_width_max: 0.08
+    # compliance_stiffness: 350.0  # this number depends on the contact force. consequently, it's effect varies with gripper gains
+
+    friction_elastomer: 0.0001
+    use_physx_gripper_control: True
+
+    num_gripper_close_sim_steps: 30
+    binary_grasp: False
+
+    compliance_stiffness: 50.0
+
+
+randomize:
+    # franka_arm_initial_dof_pos: [-1.8619762659072876, -1.306607961654663, 1.9659415483474731, -1.8817638158798218, -0.3119894564151764, 2.122023582458496, 1.2482167482376099]
+    franka_arm_initial_dof_pos: [1.4724369, 1.73502803, -1.2352668, -2.23245239, 0.17975551, 2.37867045, 1.03498936]    
+    # fingertip_midpoint_pos_initial: [0.45, -0.1, 0.117237]  # initial position of midpoint between fingertips above table
+    # fingertip_midpoint_pos_initial: [0.5127, -0.1863, 0.1578]
+    # fingertip_midpoint_pos_initial: [0.5127, -0.1863, 0.153452143]
+    # fingertip_midpoint_pos_initial: [0.5127, -0.1773, 0.153452143]
+    # fingertip_midpoint_pos_initial: [0.50976104, -0.19480657, 0.1484618]
+    fingertip_midpoint_pos_initial: [0.50889933, -0.20576764, 0.1469082]
+    fingertip_midpoint_pos_noise: [0., 0., 0.]  # noise on fingertip pos
+
+    fingertip_midpoint_rot_initial: [4.71238898, 4.71238898, 3.14159265]  # initial rotation of fingertips (Euler)
+    # fingertip_midpoint_rot_initial: [4.4736, 4.7352, 3.4158]
+
+    
+
+    # these are values for drawer handle pose
+    # fingertip_midpoint_pos_initial: [0.5127, -0.1773, 0.1578]
+    # fingertip_midpoint_rot_initial: [4.4736, 4.7352, 3.4158]
+
+    use_force_perturb: False
+    use_randomized_force_perturb: False
+    force_perturb_amount: -2
+    force_perturb_range: [-2.0, 0.0]
+    dof_padding_fail_preperturb: 0.0
+    
+    fingertip_midpoint_rot_noise: [0.0, 0.0, 0]  # noise on rotation
+    
+    randomize_compliance: False
+    compliance_stiffness_range: [150, 350]
+    compliance_damping_range: [0.0, 1.0]
+
+    randomize_ctrl_params: False  # flag to randomize_controller_params
+    task_prop_gains_min: [400, 400, 400, 30, 30, 30]  # min controller_params
+    task_prop_gains_max: [800, 800, 800, 60, 60, 60]  # max controller_params
+
+    randomize_drawer_friction: False  # flag to randomize drawer joint friction
+    drawer_friction_range: [0.00, 0.01]  # min/max friction for drawer sliding joint
+
+rl:
+    action_penalty_scale: 0.0  # scale on action penalty
+    action_gradient_penalty_scale: 0.001  # scale on action gradient penalty
+    gripper_action_gradient_penalty_scale: 0.1
+    success_bonus: 0.1  # bonus if plug is close enough to the goal
+    goal_drawer_dof: -0.12
+    goal_drawer_dof_success_padding: 0.0
+    visualize_keypoints: False
+
+    alignment_keypoint_reward_scale: 0.1
+    keypoint_reward_scale: 0.1
+    handle_grasp_reward_scale: 0.01
+    drawer_contact_penalty_scale: 0.01
+    gripper_closed_reward_scale: 0.1
+    gripper_force_perturb_penalty_scale: 0.1
+    gripper_post_perturb_reward_scale: 0.0
+    use_preperturb_penalty_anyways: False
+    dense_gripper_post_perturb_reward_scale: 0.0
+
+sensor:
+    hydroshear:
+        hydroshear_gravity_rot_noise: 0
+        hydroshear_gravity_rot_range: [0.0, 0.0]
+        hydroshear_gravity_noise: 0.0
+        hydroshear_gravity_range: [0.0, 0.0]
+        mu: 2.0
+        lambda_s: 25800  # lambda for shear force calculation
+
+
+ctrl:
+    ctrl_type: task_space_impedance  # {gym_default,
+                               #  joint_space_ik, joint_space_id,
+                               #  task_space_impedance, operational_space_motion,
+                               #  open_loop_force, closed_loop_force,
+                               #  hybrid_force_motion}
+    all:
+        jacobian_type: geometric
+        gripper_prop_gains: [800, 800]
+        gripper_deriv_gains: [40, 40]
+    gym_default:
+        ik_method: dls
+        joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+        joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        # gripper_prop_gains: [500, 500]
+        # gripper_deriv_gains: [20, 20]
+        gripper_prop_gains: [800, 800]
+        gripper_deriv_gains: [40, 40]
+    task_space_impedance:
+        motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+        task_prop_gains: [600, 600, 600, 100, 50, 50]
+        task_deriv_gains: [50, 50, 50, 1.41, 1.41, 1.41]    

@@ -1,0 +1,152 @@
+algo: PPO
+
+ppo:
+  output_name: 'lstm_teacher_drawer_task_pulling'
+  num_actors: ${...task.env.numEnvs}
+  
+  normalize_input: True
+  normalize_advantage: True
+  normalize_value: True
+  value_bootstrap: True
+
+  grad_norm: 1.0
+  entropy_coef: 0.0
+  truncate_grads: True
+  e_clip: 0.2
+  critic_coef: 2
+  clip_value: True
+  tau: 0.95
+  gamma: 0.99
+  bounds_loss_coef: 0.0 # 0.0001
+
+  learning_rate: 1.0e-4
+  lr_schedule_actor: 'adaptive' # 'adaptive' or 'fixed'
+  kl_threshold_actor: 0.002 # 0.02
+  lr_schedule_critic: 'adaptive' # 'adaptive' or 'fixed'
+  kl_threshold_critic: 0.002
+  max_lr: 1.0e-2
+
+  seq_length: 128
+  horizon_length: 256 # 512 means we run episodes twice per env
+  minibatch_size: 1024 # 16384: we could use higher mb size but less gradient steps
+  mini_epochs_actor: 4
+  mini_epochs_critic: 4
+
+  save_frequency: 100
+  save_best_after: 50
+  max_agent_steps: 3000000000
+
+actor:
+  actions_num: 7
+  normalization: None
+  teacher: True
+  input_shape:
+      ee_pos: [3]
+      ee_quat: [4]
+      dof_pos: [10]
+      dof_vel: [10]
+      ee_lin_vel: [3]
+      ee_ang_vel: [3]
+      drawer_handle_pos: [3]
+      drawer_handle_quat: [4]
+      drawer_handle_left_elastomer_force: [3]
+      drawer_handle_right_elastomer_force: [3]
+      drawer_box_left_fingerbox_contact_force: [3]
+      drawer_box_right_fingerbox_contact_force: [3]
+      drawer_box_panda_leftfinger_contact_force: [3]
+      drawer_box_panda_rightfinger_contact_force: [3]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    dof_pos: {}
+    dof_vel: {}
+    ee_lin_vel: {}
+    ee_ang_vel: {}
+    drawer_handle_pos: {}
+    drawer_handle_quat: {}
+    drawer_handle_left_elastomer_force: {}
+    drawer_handle_right_elastomer_force: {}
+    drawer_box_left_fingerbox_contact_force: {}
+    drawer_box_right_fingerbox_contact_force: {}
+    drawer_box_panda_leftfinger_contact_force: {}
+    drawer_box_panda_rightfinger_contact_force: {}
+
+  mlp:
+    units: [512, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  rnn:
+    name: lstm
+    units: 256
+    layers: 2
+    before_mlp: True
+    concat_input: True
+    layer_norm: True
+  space:
+    continuous:
+      mu_activation: None
+      sigma_activation: None
+      mu_init:
+        name: default
+      sigma_init:
+        name: const_initializer
+        val: 0.0
+      fixed_sigma: True
+
+critic:
+  value_size: 1
+  value_activation: None
+  freeze_critic: False
+  teacher: True
+
+  normalize_input: True
+  input_shape:
+      ee_pos: [3]
+      ee_quat: [4]
+      dof_pos: [10]
+      dof_vel: [10]
+      ee_lin_vel: [3]
+      ee_ang_vel: [3]
+      drawer_handle_pos: [3]
+      drawer_handle_quat: [4]
+      drawer_handle_left_elastomer_force: [3]
+      drawer_handle_right_elastomer_force: [3]
+      drawer_box_left_fingerbox_contact_force: [3]
+      drawer_box_right_fingerbox_contact_force: [3]
+      drawer_box_panda_leftfinger_contact_force: [3]
+      drawer_box_panda_rightfinger_contact_force: [3]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    dof_pos: {}
+    dof_vel: {}
+    ee_lin_vel: {}
+    ee_ang_vel: {}
+    drawer_handle_pos: {}
+    drawer_handle_quat: {}
+    drawer_handle_left_elastomer_force: {}
+    drawer_handle_right_elastomer_force: {}
+    drawer_box_left_fingerbox_contact_force: {}
+    drawer_box_right_fingerbox_contact_force: {}
+    drawer_box_panda_leftfinger_contact_force: {}
+    drawer_box_panda_rightfinger_contact_force: {}
+
+  mlp:
+    units: [512, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  rnn:
+    name: lstm
+    units: 256
+    layers: 2
+    before_mlp: True
+    concat_input: True
+    layer_norm: True

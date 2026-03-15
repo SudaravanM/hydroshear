@@ -1,0 +1,141 @@
+algo: PPO
+
+ppo:
+  output_name: 'large_mb_mlp'
+  num_actors: ${...task.env.numEnvs}
+
+  learning_rate: 1.0e-4
+  lr_schedule_actor: 'adaptive' # 'adaptive' or 'fixed'
+  lr_schedule_critic: 'adaptive' # 'adaptive' or 'fixed'
+  kl_threshold_actor: 0.001 # 0.02
+  kl_threshold_critic: 0.001 # 0.02
+
+  normalize_input: True
+  normalize_advantage: True
+  normalize_value: True
+  value_bootstrap: True
+
+  grad_norm: 1.0
+  entropy_coef: 0.0
+  truncate_grads: True
+  e_clip: 0.2
+  critic_coef: 2
+  clip_value: True
+  tau: 0.95
+  gamma: 0.99
+  bounds_loss_coef: 0.0 # 0.0001
+
+
+  seq_length: 128
+  horizon_length: 256 # 512 means we run episodes twice per env
+  minibatch_size: 512
+  mini_epochs: 5 # 4
+
+  save_frequency: 100
+  save_best_after: 50
+  max_agent_steps: 3000000000
+
+actor:
+  actions_num: 6
+  normalization: None
+  teacher: True
+  input_shape:
+    ee_pos: [3]
+    ee_quat: [4]
+    plug_pos: [3]
+    plug_quat: [4]
+    socket_pos_gt: [3]
+    socket_quat: [4]
+    dof_pos: [9]
+    ee_lin_vel: [3]
+    ee_ang_vel: [3]
+    plug_socket_force: [3]
+    plug_left_elastomer_force: [3]
+    plug_right_elastomer_force: [3]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    plug_pos: {}
+    plug_quat: {}
+    socket_pos_gt: {}
+    socket_quat: {}
+    dof_pos: {}
+    ee_lin_vel: {}
+    ee_ang_vel: {}
+    plug_socket_force: {}
+    plug_left_elastomer_force: {}
+    plug_right_elastomer_force: {}
+  mlp:
+    units: [512, 256, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  # rnn:
+  #   name: lstm
+  #   units: 256
+  #   layers: 2
+  #   before_mlp: True
+  #   concat_input: True
+  #   layer_norm: False
+  space:
+    continuous:
+      mu_activation: None
+      sigma_activation: None
+      mu_init:
+        name: default
+      sigma_init:
+        name: const_initializer
+        val: 0.0
+      fixed_sigma: False
+
+critic:
+  value_size: 1
+  value_activation: None
+  freeze_critic: False
+  teacher: True
+
+  normalize_input: True
+  input_shape:
+    ee_pos: [3]
+    ee_quat: [4]
+    plug_pos: [3]
+    plug_quat: [4]
+    socket_pos_gt: [3]
+    socket_quat: [4]
+    dof_pos: [9]
+    ee_lin_vel: [3]
+    ee_ang_vel: [3]
+    plug_socket_force: [3]
+    plug_left_elastomer_force: [3]
+    plug_right_elastomer_force: [3]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    plug_pos: {}
+    plug_quat: {}
+    socket_pos_gt: {}
+    socket_quat: {}
+    dof_pos: {}
+    ee_lin_vel: {}
+    ee_ang_vel: {}
+    plug_socket_force: {}
+    plug_left_elastomer_force: {}
+    plug_right_elastomer_force: {}
+  mlp:
+    units: [512, 256, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  # rnn:
+  #   name: lstm
+  #   units: 256
+  #   layers: 2
+  #   before_mlp: true
+  #   concat_input: true
+  #   layer_norm: false

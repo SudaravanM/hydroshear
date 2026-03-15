@@ -1,0 +1,9 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - BinTaskPackingSquishGoalRandomizationNoContactPenaltyNoPackedReward
+    - _self_
+
+rl:
+    contact_penalty_scale: 0.001

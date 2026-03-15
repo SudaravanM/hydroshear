@@ -1,0 +1,37 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - BinTaskPackingSquishGoalRandomizationWithContactPenaltyNoPackedReward
+    - _self_
+
+env:
+    obsDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'eef_to_goal_pos': [3],
+        'eef_to_goal_quat': [4],
+        'tactile_force_field_left': [9, 7, 2],
+        'tactile_force_field_right': [9, 7, 2]
+    }
+    stateDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'insertion_object_pos': [3],
+        'insertion_object_quat': [4],
+        'insertion_object_left_elastomer_force': [3],
+        'insertion_object_right_elastomer_force': [3],
+        'dof_pos': [9],
+        'ee_lin_vel': [3],
+        'ee_ang_vel': [3],
+        'insertion_object_linvel': [3],
+        'insertion_object_angvel': [3],
+        'goal_pos': [3],
+        'goal_quat': [4],
+        'packed_object_pose': [105],
+        'packed_object_vel': [90],
+        'insertion_object_bin_packed_force': [48]
+    }
+
+randomize:
+    inhand_pos_initial: [0.0, 0.0, 0.015]  # initial position of inhand object

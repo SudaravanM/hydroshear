@@ -1,0 +1,108 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - HydroShearTrainBase
+    - _self_
+
+name: BookShelvingTask
+physics_engine: ${..physics_engine}
+
+env:
+    task_type: insertion #  insertion, placement, screwing
+    numEnvs: ${resolve_default:128,${...num_envs}}
+    numActions: 6
+    franka_urdf_file: 'tacsl_franka_gelsight_mini_box.urdf'
+    freespace_dims: [0.842, 0.322, 0.222] # (width, height, depth)
+
+    # we have 15 books in bookshelf including goal
+    obsDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'insertion_object_pos': [3],
+        'insertion_object_quat': [4],
+        'insertion_object_left_elastomer_force': [3],
+        'insertion_object_right_elastomer_force': [3],
+        'dof_pos': [9],
+        'ee_lin_vel': [3],
+        'ee_ang_vel': [3],
+        'insertion_object_linvel': [3],
+        'insertion_object_angvel': [3],
+        'goal_pos': [3],
+        'goal_quat': [4],
+        # 'packed_object_pose': [126], # ((4 quat) + (3 pos)) x (19 objects - 1 to not include goal)
+        # 'packed_object_vel': [108], # (3 lin vel + 3 ang vel) x (19 objects - 1 to not include goal)
+        # 'insertion_object_bin_packed_force': [57], # (3 forces) x (19 objects)
+        'packed_object_pose': [98], # ((4 quat) + (3 pos)) x (15 objects - 1 to not include goal)
+        'packed_object_vel': [84], # (3 lin vel + 3 ang vel) x (15 objects - 1 to not include goal)
+        'insertion_object_bin_packed_force': [45], # (3 forces) x (15 objects)
+    }
+    stateDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'insertion_object_pos': [3],
+        'insertion_object_quat': [4],
+        'insertion_object_left_elastomer_force': [3],
+        'insertion_object_right_elastomer_force': [3],
+        'dof_pos': [9],
+        'ee_lin_vel': [3],
+        'ee_ang_vel': [3],
+        'insertion_object_linvel': [3],
+        'insertion_object_angvel': [3],
+        'goal_pos': [3],
+        'goal_quat': [4],
+        # 'packed_object_pose': [126], # ((4 quat) + (3 pos)) x (19 objects - 1 to not include goal)
+        # 'packed_object_vel': [108], # (3 lin vel + 3 ang vel) x (19 objects - 1 to not include goal)
+        # 'insertion_object_bin_packed_force': [57], # (3 forces) x (19 objects)
+        'packed_object_pose': [98], # ((4 quat) + (3 pos)) x (15 objects - 1 to not include goal)
+        'packed_object_vel': [84], # (3 lin vel + 3 ang vel) x (15 objects - 1 to not include goal)
+        'insertion_object_bin_packed_force': [45], # (3 forces) x (15 objects)
+    }
+    franka_close_gripper_width: 0.015
+
+    friction_insertion_obj: 0.5
+    friction_preset_objs: 0.5
+    friction_bin: 1.0
+    friction_elastomer: 0.5
+
+
+randomize:
+    franka_arm_initial_dof_pos: [0.0262, -0.2409, -0.0225, -2.081,  -0.0363,  3.4189,  0.816]
+    fingertip_midpoint_pos_initial: [0.6604, 0.0065, 0.7269]  # initial position of midpoint between fingertips above table
+    fingertip_midpoint_pos_noise: [0.01, 0.1, 0.05]  # noise on fingertip pos
+    fingertip_midpoint_rot_initial: [6.1588, 4.7203, 3.2802]  # initial rotation of fingertips (Euler)
+    fingertip_midpoint_rot_noise: [0.01, 0.01, 0.01]  # noise on rotation
+
+    # y is -0.0225 + 0.0075 + (0.013788 (extra))
+    initial_bin_pos: [0.94, -0.001212, 0.77]  # initial position of bin on table
+    initial_bin_rot: [0.0, -1.57079633, 0.0] # initial rotation of bin on table (euler)
+    preset_object_squish_goal: False
+    preset_object_randomization: False
+    preset_object_pos_noise: [0.003, 0.003, 0.003]  # noise on plug position in meters
+    preset_object_yaw_noise: 0.0 # noise on plug yaw rotation in degrees
+    inhand_pos_initial: [0.0, 0.0, 0.015]  # initial position of inhand object
+    preset_object_use_squish_tilt: False
+    preset_object_squish_padding: 0.02
+    preset_object_squish_noise_range: [-0.005, 0.00]
+    bin_pos_z_noise: 0.0
+    insertion_obj_inhand_rotation: 0.0  # initial rotation of inhand object (euler in y-direction along grasp)
+    # insertion_obj_inhand_rotation_noise_range: [-0.174532925, 0.174532925]
+    insertion_obj_inhand_rotation_noise_range: [0.0, 0.0]
+# ctrl:
+#     task_space_impedance:
+#         motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+#         task_prop_gains: [900, 900, 900, 50, 50, 50]
+#         task_deriv_gains: [50, 50, 50, 1.41, 1.41, 1.41]
+
+rl:
+    close_error_thresh: 0.01
+    visualize_keypoints: False  # flag to visualize keypoints in the environment
+    visualize_goal_pose: False
+    visualize_packed_keypoints: False
+    use_hydrosoft_model: False
+    contact_penalty_scale: 0.00
+
+sensor:
+    hydroshear:
+        hydroshear_gravity_rot_noise: 0
+        hydroshear_gravity_rot_range: [0.0, 0.0]

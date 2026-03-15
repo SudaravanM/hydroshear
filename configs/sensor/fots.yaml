@@ -1,0 +1,16 @@
+# FOTS Sensor Configuration
+# This config file contains parameters for the HydroFOTS tactile sensor simulation
+
+# Lambda parameters for force field calculation
+lambda_d: 300  # lambda for dilation force calculation
+lambda_s: 203.3439  # lambda for shear force calculation
+lambda_t: 326  # lambda for twist force calculation
+
+# Scale factors
+dilate_scale: ${eval:"1000 / 0.065 * 2.5"} # 1000 [mm/m] / 0.065 [mm/px] = 15384.615 [px/m]
+shear_scale: ${eval:"1000 / 0.065 * 1"}
+twist_scale: ${eval:"1000 / 0.065 * 1"}
+
+randomize_coefficients: False
+randomize_every_step: False
+randomize_every_episode: False

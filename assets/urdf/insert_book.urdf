@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot name="book">
+  <link name="insert_book">
+    <collision>
+      <origin xyz="0 0 0" />
+          <geometry>
+              <mesh filename="objects/meshes/insert_book_small_dense.stl"/>
+          </geometry>
+      <inertial>
+          <mass value="0.01"/>
+          <inertia ixx="0.05" ixy="0.0" ixz="0.0" iyy="0.05" iyz="0.0" izz="0.05"/>
+      </inertial>
+      <sdf resolution="256"/>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0" />
+      <geometry>
+          <mesh filename="objects/meshes/insert_book_small_dense.stl"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>

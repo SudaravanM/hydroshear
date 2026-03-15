@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="fmb_simple_container_mid">
+    <link name="fmb_simple_container_mid">
+        <visual>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/fmb_simple_container_mid.stl"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/fmb_simple_container_mid.stl"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+    </link>
+</robot>

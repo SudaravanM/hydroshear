@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="peg_hex">
+    <link name="peg_hex">
+        <visual>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/peg_hex.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/peg_hex.obj"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+    </link>
+</robot>

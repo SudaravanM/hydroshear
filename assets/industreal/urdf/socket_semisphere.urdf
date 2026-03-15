@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="socket_semisphere">
+    <link name="socket_semisphere">
+        <visual>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/socket_semisphere.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../mesh/vitascope_pegs/socket_semisphere.obj"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+    </link>
+</robot>

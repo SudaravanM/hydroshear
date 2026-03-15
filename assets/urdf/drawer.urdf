@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="drawer">
+    <link name="drawer_body">
+        <!-- Get Side Profiles (y-direction) -->
+        <collision>
+            <origin xyz="0 0.1825 0"/>
+            <geometry>
+                <box size="0.29 0.015 0.26"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0.1825 0"/>
+            <geometry>
+                <box size="0.29 0.015 0.26"/>
+            </geometry>
+        </visual>
+
+        <collision>
+            <origin xyz="0 -0.1825 0"/>
+            <geometry>
+                <box size="0.29 0.015 0.26"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 -0.1825 0"/>
+            <geometry>
+                <box size="0.29 0.015 0.26"/>
+            </geometry>
+        </visual>
+
+        <!-- Get Top Profile (z-direction) -->
+        <collision>
+            <origin xyz="0 0 0.1375"/>
+            <geometry>
+                <box size="0.29 0.385 0.015"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0.1375"/>
+            <geometry>
+                <box size="0.29 0.385 0.015"/>
+            </geometry>
+        </visual>
+
+        <!-- Get Back Profile -->
+        <collision>
+            <origin xyz="0.1525 0 0.0"/>
+            <geometry>
+                <box size="0.015 0.385 0.275"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0.1525 0 0.0075"/>
+            <geometry>
+                <box size="0.015 0.385 0.275"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="drawer_sliding_joint" type="prismatic">
+        <origin rpy="0 0 0" xyz="0 0 0.00"/>
+        <parent link="drawer_body"/>
+        <child link="drawer_box"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-0.25" upper="0.0" effort="1000" velocity="0.5"/>
+        <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="drawer_box">
+        <collision>
+            <origin xyz="-0.007 -0.005 0.0"/>
+            <geometry>    
+                <box size="0.225 0.32 0.25"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0.0 0.0 0.015"/>
+            <geometry>
+                <mesh filename="drawer/drawer_box_primtitive.stl"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="drawer_fixed_joint" type="fixed">
+        <origin xyz="-0.132957 -0.003521 -0.015211"/>
+        <parent link="drawer_box"/>
+        <child link="drawer_handle"/>
+    </joint>
+
+    <link name="drawer_handle">
+        <collision>
+            <geometry>
+                <mesh filename="drawer/handle_blender_realworld_2x.stl"/>
+            </geometry>
+            <sdf resolution="256"/>
+        </collision>
+        <visual>
+            <geometry>
+                <mesh filename="drawer/handle_blender_realworld_2x.stl"/>
+            </geometry>
+        </visual>
+    </link>
+</robot>

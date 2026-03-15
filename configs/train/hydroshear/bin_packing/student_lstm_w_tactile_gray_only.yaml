@@ -1,0 +1,180 @@
+algo: PPO
+
+ppo:
+  output_name: 'student_hydroshear_randomized'
+  num_actors: ${...task.env.numEnvs}
+  
+  normalize_input: True
+  normalize_advantage: True
+  normalize_value: True
+  value_bootstrap: True
+
+  per_channel_observations:
+    - left_tactile_camera_taxim_gray
+    - right_tactile_camera_taxim_gray
+
+  grad_norm: 1.0
+  entropy_coef: 0.0
+  truncate_grads: True
+  e_clip: 0.2
+  critic_coef: 2
+  clip_value: True
+  tau: 0.95
+  gamma: 0.99
+  bounds_loss_coef: 0.0
+
+  learning_rate: 1.0e-6
+  lr_schedule_actor: 'adaptive' # 'adaptive' or 'fixed'
+  kl_threshold_actor: 0.008 # 0.02
+  lr_schedule_critic: 'adaptive'
+  kl_threshold_critic: 0.008
+  max_lr: 1.0e-4
+
+  seq_length: 128
+  horizon_length: 512 # 512 means we run episodes twice per env
+  minibatch_size: 512 # 16384: we could use higher mb size but less gradient steps
+  mini_epochs_actor: 4 # 4
+  mini_epochs_critic: 4 # 4
+
+  save_frequency: 100
+  save_best_after: 50
+  max_agent_steps: 3000000000
+
+actor:
+  actions_num: 6
+  normalization: None
+  teacher: False
+  input_shape:
+    ee_pos: [3]
+    ee_quat: [4]
+    eef_to_goal_pos: [3]
+    eef_to_goal_quat: [4]
+    left_tactile_camera_taxim_gray: [80, 60, 1]
+    right_tactile_camera_taxim_gray: [80, 60, 1]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    eef_to_goal_pos: {}
+    eef_to_goal_quat: {}
+    left_tactile_camera_taxim_gray:
+      cnn:
+        type: conv2d_spatial_softargmax
+        activation: relu
+        initializer:
+          name: default
+        regularizer: null
+        convs:
+          - filters: 32
+            kernel_size: 8
+            strides: 2
+            padding: 0
+          - filters: 64
+            kernel_size: 4
+            strides: 1
+            padding: 0
+          - filters: 64
+            kernel_size: 3
+            strides: 1
+            padding: 0
+    right_tactile_camera_taxim_gray:
+      cnn:
+        type: conv2d_spatial_softargmax
+        activation: relu
+        initializer:
+          name: default
+        regularizer: null
+        convs:
+          - filters: 32
+            kernel_size: 8
+            strides: 2
+            padding: 0
+          - filters: 64
+            kernel_size: 4
+            strides: 1
+            padding: 0
+          - filters: 64
+            kernel_size: 3
+            strides: 1
+            padding: 0
+  mlp:
+    units: [512, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  rnn:
+    name: lstm
+    units: 256
+    layers: 2
+    before_mlp: True
+    concat_input: True
+    layer_norm: True
+  space:
+    continuous:
+      mu_activation: None
+      sigma_activation: None
+      mu_init:
+        name: default
+      sigma_init:
+        name: const_initializer
+        val: 0.0
+      fixed_sigma: True
+
+critic:
+  value_size: 1
+  value_activation: None
+  freeze_critic: False
+  teacher: True
+
+  normalize_input: True
+  input_shape:
+    ee_pos: [3]
+    ee_quat: [4]
+    insertion_object_pos: [3]
+    insertion_object_quat: [4]
+    insertion_object_left_elastomer_force: [3]
+    insertion_object_right_elastomer_force: [3]
+    dof_pos: [9]
+    ee_lin_vel: [3]
+    ee_ang_vel: [3]
+    insertion_object_linvel: [3]
+    insertion_object_angvel: [3]
+    goal_pos: [3]
+    goal_quat: [4]
+    packed_object_pose: [105]
+    packed_object_vel: [90]
+    insertion_object_bin_packed_force: [48]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    insertion_object_pos: {}
+    insertion_object_quat: {}
+    insertion_object_left_elastomer_force: {}
+    insertion_object_right_elastomer_force: {}
+    dof_pos: {}
+    ee_lin_vel: {}
+    ee_ang_vel: {}
+    insertion_object_linvel: {}
+    insertion_object_angvel: {}
+    goal_pos: {}
+    goal_quat: {}
+    packed_object_pose: {}
+    packed_object_vel: {}
+    insertion_object_bin_packed_force: {}
+  mlp:
+    units: [512, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  rnn:
+    name: lstm
+    units: 256
+    layers: 2
+    before_mlp: True
+    concat_input: True
+    layer_norm: True

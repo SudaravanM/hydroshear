@@ -1,0 +1,12 @@
+# See schema in factory_schema_config_env.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - _self_
+    - /factory_schema_config_env
+
+sim:
+    disable_franka_collisions: False
+
+env:
+    env_name: 'DrawerEnvPulling'

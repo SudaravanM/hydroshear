@@ -1,0 +1,42 @@
+# See schema in factory_schema_config_task.py for descriptions of common parameters.
+
+defaults:
+    - TacSLBase
+    - BookTaskShelvingSquishStage2
+    - _self_
+
+name: BookShelvingTask
+physics_engine: ${..physics_engine}
+
+env:
+    obsDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'eef_to_goal_pos': [3],
+        'eef_to_goal_quat': [4],
+        'left_tactile_camera_taxim': [80, 60, 3],
+        'right_tactile_camera_taxim': [80, 60, 3],
+        'left_tactile_camera_taxim_gray': [80, 60, 1],
+        'right_tactile_camera_taxim_gray': [80, 60, 1],
+    }
+    stateDims: { 
+        'ee_pos': [3],
+        'ee_quat': [4],
+        'insertion_object_pos': [3],
+        'insertion_object_quat': [4],
+        'insertion_object_left_elastomer_force': [3],
+        'insertion_object_right_elastomer_force': [3],
+        'dof_pos': [9],
+        'ee_lin_vel': [3],
+        'ee_ang_vel': [3],
+        'insertion_object_linvel': [3],
+        'insertion_object_angvel': [3],
+        'goal_pos': [3],
+        'goal_quat': [4],
+        # 'packed_object_pose': [126], # ((4 quat) + (3 pos)) x (19 objects - 1 to not include goal)
+        # 'packed_object_vel': [108], # (3 lin vel + 3 ang vel) x (19 objects - 1 to not include goal)
+        # 'insertion_object_bin_packed_force': [57], # (3 forces) x (19 objects)
+        'packed_object_pose': [98], # ((4 quat) + (3 pos)) x (15 objects - 1 to not include goal)
+        'packed_object_vel': [84], # (3 lin vel + 3 ang vel) x (15 objects - 1 to not include goal)
+        'insertion_object_bin_packed_force': [45], # (3 forces) x (15 objects)
+    }

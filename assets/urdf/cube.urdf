@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot name="object">
+    <link name="cube">
+        <visual>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="objects/meshes/cube_multicolor_5cm_densest.stl"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="objects/meshes/cube_multicolor_5cm_densest.stl"/>
+            </geometry>
+            <sdf resolution="256"/>
+            <inertial>
+                <mass value="0.055"/>
+                <inertia ixx="0.05" ixy="0.0" ixz="0.0" iyy="0.05" iyz="0.0" izz="0.05"/>
+            </inertial>
+        </collision>
+    </link>
+</robot>

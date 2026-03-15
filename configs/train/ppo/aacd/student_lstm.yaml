@@ -1,0 +1,176 @@
+algo: PPO
+
+ppo:
+  output_name: 'student_hydroshear_randomized'
+  num_actors: ${...task.env.numEnvs}
+  
+  normalize_input: True
+  normalize_advantage: True
+  normalize_value: True
+  value_bootstrap: True
+
+  # Channel-wise normalization for image-like observations
+  # This enables per-channel mean/std for spatial observations like tactile force fields
+  # Each channel (e.g., normal force, shear X, shear Y) gets separate normalization statistics
+  per_channel_observations:
+    - tactile_force_field_left
+    - tactile_force_field_right
+  # per_channel_states: []  # Optional: list observations that need per-channel norm in critic
+
+  grad_norm: 1.0
+  entropy_coef: 0.0
+  truncate_grads: True
+  e_clip: 0.2
+  critic_coef: 2
+  clip_value: True
+  tau: 0.95
+  gamma: 0.99
+  bounds_loss_coef: 0.0
+
+  learning_rate: 1.0e-6
+  lr_schedule_actor: 'adaptive' # 'adaptive' or 'fixed'
+  kl_threshold_actor: 0.008 # 0.02
+  lr_schedule_critic: 'adaptive'
+  kl_threshold_critic: 0.008
+  max_lr: 1.0e-4
+
+  seq_length: 128
+  horizon_length: 512 # 512 means we run episodes twice per env
+  minibatch_size: 512 # 16384: we could use higher mb size but less gradient steps
+  mini_epochs_actor: 4 # 4
+  mini_epochs_critic: 4 # 4
+
+  save_frequency: 100
+  save_best_after: 50
+  max_agent_steps: 3000000000
+
+actor:
+  actions_num: 6
+  normalization: None
+  teacher: False
+  input_shape:
+    ee_pos: [3]
+    ee_quat: [4]
+    eef_to_socket_pos: [3]
+    eef_to_socket_quat: [4]
+    tactile_force_field_left: [9, 7, 2]
+    tactile_force_field_right: [9, 7, 2]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    eef_to_socket_pos: {}
+    eef_to_socket_quat: {}
+    tactile_force_field_left:
+      cnn:
+        type: conv2d_spatial_softargmax
+        activation: relu
+        initializer:
+          name: default
+        regularizer: null
+        convs:
+          - filters: 32
+            kernel_size: 3
+            strides: 1
+            padding: 1
+          - filters: 64
+            kernel_size: 3
+            strides: 1
+            padding: 1
+          - filters: 64
+            kernel_size: 3
+            strides: 1
+            padding: 0
+    tactile_force_field_right:
+      cnn:
+        type: conv2d_spatial_softargmax
+        activation: relu
+        initializer:
+          name: default
+        regularizer: null
+        convs:
+          - filters: 32
+            kernel_size: 3
+            strides: 1
+            padding: 1
+          - filters: 64
+            kernel_size: 3
+            strides: 1
+            padding: 1
+          - filters: 64
+            kernel_size: 3
+            strides: 1
+            padding: 0
+  mlp:
+    units: [512, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  rnn:
+    name: lstm
+    units: 256
+    layers: 2
+    before_mlp: True
+    concat_input: True
+    layer_norm: True
+  space:
+    continuous:
+      mu_activation: None
+      sigma_activation: None
+      mu_init:
+        name: default
+      sigma_init:
+        name: const_initializer
+        val: 0.0
+      fixed_sigma: True
+
+critic:
+  value_size: 1
+  value_activation: None
+  freeze_critic: False
+  teacher: True
+
+  normalize_input: True
+  input_shape:
+    ee_pos: [3]
+    ee_quat: [4]
+    plug_pos: [3]
+    plug_quat: [4]
+    socket_pos_gt: [3]
+    socket_quat: [4]
+    dof_pos: [9]
+    ee_lin_vel: [3]
+    ee_ang_vel: [3]
+    plug_socket_force: [3]
+    plug_left_elastomer_force: [3]
+    plug_right_elastomer_force: [3]
+  input_preprocessors:
+    ee_pos: {}
+    ee_quat: {}
+    plug_pos: {}
+    plug_quat: {}
+    socket_pos_gt: {}
+    socket_quat: {}
+    dof_pos: {}
+    ee_lin_vel: {}
+    ee_ang_vel: {}
+    plug_socket_force: {}
+    plug_left_elastomer_force: {}
+    plug_right_elastomer_force: {}
+  mlp:
+    units: [512, 128, 64]
+    activation: elu
+    d2rl: false
+    initializer:
+      name: default
+    regularizer:
+      name: None
+  rnn:
+    name: lstm
+    units: 256
+    layers: 2
+    before_mlp: True
+    concat_input: True
+    layer_norm: True

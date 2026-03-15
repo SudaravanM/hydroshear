@@ -1,0 +1,40 @@
+# HydroFOTS Sensor Configuration
+# This config file contains parameters for the HydroFOTS tactile sensor simulation
+
+# Material coefficients
+I: 1
+K: 1
+E: 1
+A: 1
+mu: 0.5
+
+# Lambda parameters for force field calculation
+lambda_d: 20000  # lambda for dilation force calculation
+lambda_s: 10800  # lambda for shear force calculation
+
+# Scale factors
+dilate_scale: ${eval:"1000 / 0.065 * 1"} # 1000 [mm/m] / 0.065 [mm/px] = 15384.615 [px/m]
+shear_scale: ${eval:"1000 / 0.065 * 1"}
+
+hydroshear_gravity_noise: 0.00025
+hydroshear_gravity_range: [0.0001, 0.00025]
+
+hydroshear_gravity_rot_noise: 0
+hydroshear_gravity_rot_range: [0.0, 0.0]
+
+randomize_coefficients: False
+
+mu_range: [0.5, 0.75]
+lambda_d_range: [11000, 22000]
+lambda_s_range: [7000, 13000]
+
+dilate_scale_range:
+  - ${eval:"1000/0.065*0.8"}
+  - ${eval:"1000/0.065*1.2"}
+
+shear_scale_range:
+  - ${eval:"1000/0.065*0.9"}
+  - ${eval:"1000/0.065*1.1"}
+
+randomize_every_step: False
+randomize_every_episode: False
