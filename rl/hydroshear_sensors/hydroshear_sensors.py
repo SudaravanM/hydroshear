@@ -210,6 +210,22 @@ class HydroFotsSensor:
         self.prev_sdf = None
         self.prev_indenter_pts_in_elastomer = None
 
+        # FFT-accelerated dilation (opt-in; configured via enable_fft_dilation()).
+        # For a regular planar taxel grid the O(N^2) pairwise dilation sum is an
+        # exact 2D convolution, evaluated with an FFT in O(N log N). See
+        # fft_dilation.py and the paper's Appendix A.7. Disabled by default; the
+        # FFT only pays off past a few hundred taxels (below that the dense path
+        # is faster), so we gate on num_tactile_pts >= fft_dilation_min_pts.
+        self._fft_dilation = None
+        self.use_fft_dilation = hydrofots_cfg.get('use_fft_dilation', False) if hydrofots_cfg is not None else False
+        self.fft_dilation_min_pts = hydrofots_cfg.get('fft_dilation_min_pts', 256) if hydrofots_cfg is not None else 256
+
+        # GEMM-accelerated shear (opt-in). Shear sums over irregular indenter
+        # points so it is NOT an FFT/convolution, but it factors into a batched
+        # matmul that is exact for any layout, faster, and avoids the dense
+        # (E, P, N, 3) tensor that OOMs at scale. See fft_shear.py / FFT.md.
+        self.use_matmul_shear = hydrofots_cfg.get('use_matmul_shear', False) if hydrofots_cfg is not None else False
+
         cprint(f"HydroFOTS coefficients: {self.mu=}, {self.lambda_s=}, {self.lambda_d=}, {self.dilate_scale=}, {self.shear_scale=}", "green")
         
     def initialize(self, num_envs, num_indenter_pts, randomization_dict=None):
@@ -333,13 +349,27 @@ class HydroFotsSensor:
             fbar = self.step_hydrosoft_forces(sdf, aug_indenter_pts_in_elastomer)
             self.aug_hydrosoft_forces = fbar
         
+        normal_axis = self.elastomer_sdf_sensor.get_normal_axis()
+
+        # Fast path: factor the shear sum into a batched matmul. Mathematically
+        # identical to the dense sum below (see fft_shear.py) for any point
+        # layout, but never materializes the (E, P, N, 3) tensor -> faster and
+        # far lighter on memory (P >> N).
+        if self.use_matmul_shear:
+            from .fft_shear import shear_matmul
+            return shear_matmul(
+                tactile_pts_in_elastomer, indenter_pts_in_elastomer, fbar,
+                self.lambda_s, self.shear_scale,
+                normal_axis=normal_axis, reverse_z=reverse_z,
+            )
+
         affected_marker_positions = indenter_pts_in_elastomer + fbar # get markers affected during motion (num_envs, num_pts, 3)
-        
-        indenter_pts_height = fbar[:, :, self.elastomer_sdf_sensor.get_normal_axis()]
-        
+
+        indenter_pts_height = fbar[:, :, normal_axis]
+
         num_envs, num_indenter_pts, _ = indenter_pts_in_elastomer.shape
         num_tactile_pts = tactile_pts_in_elastomer.shape[1]
-        
+
         tactile_pts_in_elastomer = tactile_pts_in_elastomer.unsqueeze(1).expand(num_envs, num_indenter_pts, num_tactile_pts, 3)
         affected_marker_positions = affected_marker_positions.unsqueeze(2).expand(num_envs, num_indenter_pts, num_tactile_pts, 3)
         fbar = fbar.unsqueeze(2).expand(num_envs, num_indenter_pts, num_tactile_pts, 3)
@@ -350,19 +380,62 @@ class HydroFotsSensor:
         Mshear = torch.sum(self.shear_scale.unsqueeze(-1).unsqueeze(-1) * h * -1 * fbar * gaussian_exp * (-1 if reverse_z else 1), dim=1) # (num_envs, num_tactile_pts, 3)
         return Mshear
         
+    def enable_fft_dilation(self, tactile_pts_in_elastomer, grid_shape, atol_planar=1e-4):
+        '''
+        Precompute the FFT dilation operator for a regular planar taxel grid.
+
+        Args:
+            tactile_pts_in_elastomer: (num_tactile_pts, 3) or (num_envs, num_tactile_pts, 3)
+                tactile points in the elastomer frame, laid out row-major as
+                (r * grid_shape[1] + c), matching generate_tactile_points().
+            grid_shape: (H, W) = (num_divs[1], num_divs[0]) = (rows, cols).
+            atol_planar: max normal-axis deviation (m) tolerated before warning
+                that the grid is non-planar (FFT becomes an approximation).
+
+        The taxel spacing and tangent/normal axes are inferred from the points.
+        '''
+        from .fft_dilation import DilationFFT, infer_grid_geometry
+
+        pts = tactile_pts_in_elastomer
+        if pts.dim() == 3:
+            pts = pts[0]
+        pts = pts.detach()
+        info = infer_grid_geometry(pts, grid_shape, atol_planar=atol_planar)
+        if not info['is_planar']:
+            cprint(f"[HydroFOTS] WARNING: taxel grid not planar (normal-axis spread "
+                   f"{info['planar_residual']:.2e} m > {atol_planar:.1e} m); FFT dilation "
+                   f"is an approximation of the dense sum.", "yellow")
+        self._fft_dilation = DilationFFT(
+            grid_shape, info['spacing'], tangent_axes=info['tangent_axes'],
+            device=self.device, dtype=pts.dtype,
+        )
+        self._fft_grid_shape = tuple(grid_shape)
+        cprint(f"[HydroFOTS] FFT dilation enabled: grid={tuple(grid_shape)}, "
+               f"spacing={info['spacing']}, tangent_axes={info['tangent_axes']}, "
+               f"planar_residual={info['planar_residual']:.2e} m", "green")
+        return info
+
     def get_marker_dilation(self, tactile_pts_in_elastomer, tactile_pts_in_indenter):
         # tactile points queried on indenter sdf
         tactile_pts_sdf,_ = self.indenter_sdf_sensor.get_sdf(tactile_pts_in_indenter) # (num_envs, num_tactile_pts)
         tactile_pts_height = F.relu(-tactile_pts_sdf) # (num_envs, num_tactile_pts)
-        
+
         num_envs, num_tactile_pts = tactile_pts_height.shape
+
+        # Fast path: 2D-FFT convolution on a regular planar grid. Mathematically
+        # identical to the dense sum below (see fft_dilation.py). Only used when
+        # explicitly enabled and the grid is large enough for FFT to pay off.
+        if (self.use_fft_dilation and self._fft_dilation is not None
+                and num_tactile_pts >= self.fft_dilation_min_pts):
+            return self._fft_dilation(tactile_pts_height, self.lambda_d, self.dilate_scale)
+
         dvec = tactile_pts_in_elastomer.unsqueeze(2) - tactile_pts_in_elastomer.unsqueeze(1) # (num_envs, num_tactile_pts, num_tactile_pts, 3)
         norm_dvec = torch.norm(dvec, dim=-1)**2 # (num_envs, num_tactile_pts, num_tactile_pts)
-        
+
         gaussian_exp = torch.exp(-self.lambda_d.unsqueeze(-1) * norm_dvec).unsqueeze(-1).expand(num_envs, num_tactile_pts, num_tactile_pts, 3)
         h = tactile_pts_height.unsqueeze(1).unsqueeze(-1).expand(num_envs, 1, num_tactile_pts, 3)
         Mdilate = (self.dilate_scale.unsqueeze(-1).unsqueeze(-1) * h * dvec * gaussian_exp).sum(dim=2) # (num_envs, num_tactile_pts, 3)
-        
+
         return Mdilate
     
     def get_marker_displacement(self, tactile_pts_in_indenter, tactile_pts_in_elastomer, indenter_pts_in_elastomer, aug_indenter_pts_in_elastomer=None):
@@ -399,7 +472,16 @@ class HydroFotsFieldSensor:
             torch.tensor(sensor.elastomer_sdf_sensor.generate_tactile_points(margin=0.003, local_z_dir=-1, num_divs=self.num_divs)).to(self.device).to(torch.float32)
             for sensor in self.hydrofots_sensors
         ]
-        
+
+        # Precompute FFT dilation operators for sensors that opted in. grid_shape
+        # is (rows, cols) = (num_divs[1], num_divs[0]), matching the row-major
+        # (r*W + c) layout produced by generate_tactile_points(). Gated at call
+        # time by fft_dilation_min_pts, so this is a no-op below that threshold.
+        grid_shape = (self.num_divs[1], self.num_divs[0])
+        for sensor, pts in zip(self.hydrofots_sensors, self.local_elastomer_pts):
+            if getattr(sensor, 'use_fft_dilation', False):
+                sensor.enable_fft_dilation(pts, grid_shape)
+
         self.visualize = visualize
         if visualize:
             origin = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0,0,0])
