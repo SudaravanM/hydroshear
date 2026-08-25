@@ -82,6 +82,17 @@ def main():
         agent.rnn_states = rnn_states
         obs_dict, rewards, done, info = env.step(torch.clamp(mu, -1.0, 1.0))
         step += 1
+        # Zero the recurrent state of every env that just finished, exactly as the training
+        # rollout does (ppo.py play_steps, `zero_rnn_on_done`, always true for an RNN policy).
+        # ppo.test() omits this, so hidden state leaks across the episode boundary and every
+        # episode after the first is evaluated from a corrupted state: on the drawer student
+        # that read 0.945 for episode 1 and 0.383 to 0.492 for episodes 2 to 8. The checkpoint's
+        # own best_sr was measured WITH this reset, so without it the two are not comparable.
+        if agent.is_rnn and bool(torch.as_tensor(done).any()):
+            done_idx = torch.as_tensor(done).nonzero(as_tuple=False)
+            for states_tuple in agent.rnn_states:      # actor_states, critic_states
+                for s in states_tuple:                 # h, c for LSTM
+                    s[:, done_idx, :] = 0.0 * s[:, done_idx, :]
         # extras is a PERSISTENT dict: once 'successes' is written at the episode's final
         # step it stays there on every later step. Keying on its presence counts one episode
         # many times. Episode length is constant across envs, so `done` marks the real boundary.
