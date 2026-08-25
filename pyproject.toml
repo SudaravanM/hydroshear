@@ -27,7 +27,6 @@ dependencies = [
     "wandb==0.12.11",
     "ale-py==0.7",
     "AutoROM==0.4.2",
-    "envpool==0.6.1",
     "pytorch_volumetric",
     "pytorch_kinematics",
     "protobuf==3.20.0",
