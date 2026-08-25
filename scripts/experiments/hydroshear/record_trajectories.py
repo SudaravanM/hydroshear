@@ -95,7 +95,8 @@ def main():
         with open_dict(cfg):
             for kv in args.overrides.split(","):
                 k, v = kv.split("=", 1)
-                OmegaConf.update(cfg, k.strip(), OmegaConf.create({"v": v.strip()})["v"], force_add=True)
+                # parse the value as YAML: "False" must become bool False, not the (truthy) string "False"
+                OmegaConf.update(cfg, k.strip(), OmegaConf.create(f"v: {v.strip()}")["v"], force_add=True)
         print("  overrides:", args.overrides, flush=True)
     if str(cfg.rl_device).startswith("cpu"):
         # checkpoints were saved from cuda tensors; PPO.load_model calls torch.load without map_location
