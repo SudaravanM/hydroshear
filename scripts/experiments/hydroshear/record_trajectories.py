@@ -105,7 +105,7 @@ def main():
         "rel_pos_left", "rel_quat_left", "rel_pos_right", "rel_quat_right",
         "elast_left_pos", "elast_left_quat", "elast_right_pos", "elast_right_quat",
         "handle_pos", "handle_quat", "gripper_width", "drawer_dof",
-        "actions", "rewards", "dones")}
+        "actions", "rewards", "dones", "tactile_left", "tactile_right")}
     successes, episodes, step = [], 0, 0
     n2 = lambda t: t.detach().cpu().numpy().astype(np.float32)
 
@@ -136,6 +136,11 @@ def main():
         rec["drawer_dof"].append(n2(env.dof_pos[:, 9:10]))
         rec["actions"].append(n2(actions))
 
+        # The backend's own field for THIS step, if the env computes one (student checkpoints do,
+        # teachers do not). Stored in addition to the geometry, never instead of it: it is what
+        # makes a backend comparison paired, the same trajectory rendered two ways.
+        for k, key in (("tactile_left", "tactile_force_field_left"), ("tactile_right", "tactile_force_field_right")):
+            rec[k].append(n2(obs_dict["obs"][key]) if key in obs_dict["obs"] else np.zeros((env.num_envs, 0), np.float32))
         obs_dict, rewards, done, info = env.step(actions)
         rec["rewards"].append(n2(rewards))
         rec["dones"].append(done.detach().cpu().numpy().astype(np.uint8))
@@ -151,9 +156,12 @@ def main():
     meta = dict(
         ckpt=args.ckpt_path, task=cfg.task_name, num_envs=args.num_envs,
         episodes=args.episodes, steps=step, successes=successes,
-        note=("tactile is NOT stored. rel_{pos,quat}_{left,right} is "
+        tactile_stored=bool(stacked["tactile_left"].shape[-1] > 0),
+        note=("geometry is the primary record. rel_{pos,quat}_{left,right} is "
               "inv(elastomer_world) o handle_world, the exact input HydroShear's "
-              "get_indenter2elastomer_tf produces, so any backend can render from it."),
+              "get_indenter2elastomer_tf produces, so any backend can render from it. "
+              "tactile_{left,right} additionally holds the env's own post-processed field "
+              "(the student's observation, [9,7,2]) when the checkpoint's env computes one."),
     )
     out = os.path.join(args.out, f"traj_{os.path.basename(args.ckpt_path).replace('.pth','')}.npz")
     np.savez_compressed(out, meta=meta, **stacked)
