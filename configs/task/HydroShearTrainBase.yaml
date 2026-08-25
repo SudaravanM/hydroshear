@@ -85,6 +85,7 @@ env:
     tactile_cam_euler_offset: [0.0, 0.0, 0.0]   # euler angle offset to tactile camera pose
     tactile_cam_zoom_level: 1.0   # scalar to zoom tactile camera in or out. If less than 1, zooms-in i.e. move camera closer
     use_shear_force: False
+    use_shear_3d: False  # 2-D shear field (normal channel dropped); read whenever use_shear_force is on, and True has no code path
     num_shear_rows: 7
     num_shear_cols: 9
     zero_out_normal_force_field_obs: False  # flag to set the normal force field to zero and only use shear force field

@@ -6,7 +6,6 @@ defaults:
     - _self_
 
 env:
-    use_shear_3d: False   # read unconditionally by compute_observations_dict_obs; 2-D shear, matches obsDims [9, 7, 2]
     obsDims: { 
         'ee_pos': [3],
         'ee_quat': [4],
