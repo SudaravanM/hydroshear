@@ -843,6 +843,16 @@ class DrawerTaskPulling(TacSLTaskImageAugmentation, TacSLFrankaControl, DrawerEn
     
     def visualize_keypoints(self, **kwargs):
         
+        # Debug drawing only. Gated for two reasons:
+        #  1. it calls gymutil.ArrowGeometry, which does NOT exist in the shipped
+        #     IsaacGym_Preview_TacSL_Package (only Axes/Line/WireframeBBox/Box/Sphere),
+        #     so stage 2 crashes the moment force perturbation is enabled;
+        #  2. there is no viewer in headless training, so none of it is visible anyway.
+        # The original guard, hasattr(self, 'dof_when_force_perturb'), becomes true
+        # exactly when force perturbation is on, i.e. stage 2 onward.
+        if self.headless or not kwargs.get('keypoints_vis', False):
+            return
+
         # visualize plane based on self.dof_
         if hasattr(self, 'dof_when_force_perturb'):
             for env_idx in range(self.num_envs):
