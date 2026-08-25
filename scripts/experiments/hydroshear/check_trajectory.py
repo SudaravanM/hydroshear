@@ -66,12 +66,12 @@ def main(path):
         else:
             f = env_postprocess(raw)
             e0 = np.abs(f - obs).max()
-            em = np.abs(f[1:] - obs[:-1]).max()     # raw one step AHEAD of obs (the old bug)
-            ep = np.abs(f[:-1] - obs[1:]).max()     # raw one step behind
+            em = np.abs(f[1:] - obs[:-1]).max()     # zero if raw lags obs by one step
+            ep = np.abs(f[:-1] - obs[1:]).max()     # zero if raw is one step AHEAD of obs (the old bug)
             scale = np.abs(obs).max()
             ok = e0 < 1e-5 * max(scale, 1.0) and scale > 0
             report(f"ALIGN {side}", ok,
-                   f"max|obs[i]-f(raw[i])| {e0:.2e}; contrast: raw ahead {em:.2e}, raw behind {ep:.2e}; |obs| max {scale:.3f}")
+                   f"max|obs[i]-f(raw[i])| {e0:.2e}; contrast: raw behind {em:.2e}, raw ahead {ep:.2e}; |obs| max {scale:.3f}")
 
         # ---- CONTACT
         dep, npen = d[f"depth_{side}"], d[f"n_pen_{side}"]
