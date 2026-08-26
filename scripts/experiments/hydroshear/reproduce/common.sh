@@ -11,5 +11,8 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$CONDA_PREFIX/lib"
 export RL_OUTPUT_PATH="${RL_OUTPUT_PATH:-$HYDROSHEAR_ROOT/outputs}"; mkdir -p "$RL_OUTPUT_PATH"
 ulimit -c 0
 DRAWER_RUNS="$RL_OUTPUT_PATH/1_hydroshear/DrawerTaskPulling"
+# The entry points overwrite numEnvs AFTER hydra composes (train_teacher.py sets 1024,
+# train_student_aacd.py sets 128/256), so NENV cannot change it. Say so rather than lie.
+warn_inert_nenv () { [ "${NENV:-$1}" != "$1" ] && echo "WARNING: NENV=$NENV is ignored; the entry point hardcodes $1 envs. Edit the script to change it."; return 0; }
 # best checkpoint of a run family by the NUMBER in its name, not by mtime
 best_ckpt () { ls "$DRAWER_RUNS"/$1_*/nn/best_sr_*.pth 2>/dev/null | sed -E 's/(.*best_sr_)([0-9.]+)\.pth/\2 \0/' | sort -rn | head -1 | cut -d' ' -f2-; }

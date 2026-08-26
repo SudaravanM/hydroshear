@@ -1,10 +1,14 @@
 #!/bin/bash
 # Drawer teacher, stage 2 (random force perturbation), resumed from stage 1.
-# Env count matters: at 128 envs success peaked 0.53 then collapsed to 0 while reward rose;
-# at 1024 envs (the authors' Table VII) it reached 1.00 at 70M steps, 0.8 at 17M, 0.99 at 37M.
+# THE TROUGH: success climbs to ~0.39 by 8M, drops to ~0.00 between 10M and 14M, then recovers:
+# 0.71 at 17M, 0.91 at 25M, 0.98 at 37M, 1.00 at 70M. A run killed inside that window looks like
+# a collapse and is not one. Two of our runs differed only in max_agent_steps (20M vs 70M) and
+# were numerically identical up to 11.3M. Do not stop this before ~17M steps.
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+# NENV is inert: both entry points overwrite numEnvs after hydra composes (see README)
 NENV="${NENV:-1024}"; MAX_STEPS="${MAX_STEPS:-70000000}"; WALL="${WALL:-8h}"; RUN="${RUN:-drawer_teacher_stage2}"
 CKPT="${CKPT:-$(best_ckpt drawer_teacher_stage1)}"; [ -z "$CKPT" ] && { echo "no stage-1 checkpoint"; exit 1; }
+warn_inert_nenv 1024
 echo "stage2: envs=$NENV max_steps=$MAX_STEPS wall=$WALL from=$CKPT"
 timeout "$WALL" python3 scripts/experiments/hydroshear/train_teacher.py \
     train=hydroshear/drawer_pulling/teacher_lstm task=DrawerTaskPulling \
