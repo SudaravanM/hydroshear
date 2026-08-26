@@ -35,8 +35,15 @@ def main(cfg: DictConfig):
 
     continue_training: bool = False
 
-    use_tactile_shear: bool = True
-    use_tactile_rgb: bool = False
+    # These two select the sensor MODE. Each fans out to several coupled cfg fields below, so
+    # they are deliberately not set independently: use_tactile_shear drives both use_shear_force
+    # and use_tactile_field_obs, and use_tactile_rgb also drives numEnvs. Keeping that coupling
+    # is what makes an invalid combination unreachable.
+    # They are read from the task config (falling back to the upstream defaults) so that an
+    # ablation such as N0 is recorded in the run's own config.yaml, instead of living in an
+    # unversioned edit to this file that no artifact captures.
+    use_tactile_shear: bool = bool(cfg.task.env.get("student_tactile_mode", True))
+    use_tactile_rgb: bool = bool(cfg.task.env.get("student_rgb_mode", False))
     headless: bool = True
 
     set_np_formatting()

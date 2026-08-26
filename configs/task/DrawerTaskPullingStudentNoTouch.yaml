@@ -1,0 +1,33 @@
+# N0: the no-touch reference. Identical to DrawerTaskPullingStudent except that the actor cannot
+# see touch and no tactile backend runs. Answers Q0: does the perturbed drawer task already solve
+# itself without touch? If it does, every tactile comparison downstream measures little.
+defaults:
+    - TacSLBase
+    - DrawerTaskPullingStudent
+    - _self_
+
+name: DrawerTaskPulling
+
+env:
+    # THE switch. train_student_aacd.py reads this and fans it out to use_shear_force and
+    # use_tactile_field_obs together, which is the coupling that keeps the flag set coherent.
+    # Setting it here rather than editing the script means this ablation is recorded in the
+    # run's own config.yaml, which matters because N0 is a control.
+    student_tactile_mode: False
+
+    # Backends off as well, so nothing computes a field that nobody reads.
+    use_hydrosoft_model: False
+    use_tacsl_shear: False
+    use_fots_model: False
+    use_old_fots_model: False
+
+    # Kept for readability; the script sets both from student_tactile_mode above.
+    use_tactile_field_obs: False
+    use_shear_force: False
+
+# NOTE on obsDims: an override here would NOT remove the inherited tactile entries. OmegaConf
+# merges dicts recursively, so `obsDims: {ee_pos, ee_quat}` composes to the parent's full key set
+# with the tactile fields still present, which reads as an ablation but is not one. The ablation
+# is enforced where it actually binds: the actor's input_shape in
+# configs/train/hydroshear/drawer_pulling/student_lstm_notouch.yaml, which PPO filters against
+# (rl/algo/ppo/ppo.py). With student_tactile_mode False the fields are never computed either.
