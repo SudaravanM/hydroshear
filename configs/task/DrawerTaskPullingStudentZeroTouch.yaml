@@ -1,0 +1,25 @@
+# N0-zero: THE PRIMARY no-touch control.
+#
+# N0 (DrawerTaskPullingStudentNoTouch) removes the tactile entries from the actor, which also
+# deletes its two convolutional preprocessors. That changes the network, so N0 confounds "touch
+# does not help" with "a different, smaller network does better". N0-zero removes the confound:
+# the network, the observation dimensions and the whole tactile pipeline are IDENTICAL to H0, and
+# only the VALUES the actor reads are zeroed. Any difference is then attributable to the tactile
+# signal itself rather than to architecture.
+#
+# It also keeps the tactile backend running, so N0-zero's throughput stays comparable to H0's and
+# the control does not accidentally become a speed ablation as well.
+defaults:
+    - TacSLBase
+    - DrawerTaskPullingStudent
+    - _self_
+
+name: DrawerTaskPulling
+
+env:
+    # Network and observation dims stay exactly as H0: tactile mode ON.
+    student_tactile_mode: True
+
+    # ... but the field the actor reads is overwritten with zeros after the backend produces it.
+    # drawer_task_pulling.py honours this immediately after assigning the shear field.
+    zero_out_tactile_field_obs: True

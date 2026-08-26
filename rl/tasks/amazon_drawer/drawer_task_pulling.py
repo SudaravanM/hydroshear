@@ -486,6 +486,16 @@ class DrawerTaskPulling(TacSLTaskImageAugmentation, TacSLFrankaControl, DrawerEn
                             self.obs_dict[f'tactile_force_field_left'][:] = shear
                         else:
                             self.obs_dict[f'tactile_force_field_right'][:] = shear
+
+                    # N0-zero, the primary no-touch control: keep the network, the observation
+                    # dimensions and the tactile pipeline identical to H0 and zero only the VALUES
+                    # the actor reads. N0 removes the tactile entries entirely, which also deletes
+                    # two convolutional preprocessors, so it cannot separate "touch does not help"
+                    # from "a different network does better". Defaults False, so no existing run
+                    # changes behaviour.
+                    if self.cfg_task.env.get('zero_out_tactile_field_obs', False):
+                        self.obs_dict['tactile_force_field_left'][:] = 0.0
+                        self.obs_dict['tactile_force_field_right'][:] = 0.0
                 
                     if self.cfg_task.env.get('debug_vis', False) or self.record_frames:
                         left_marker_im = marker_displacement_dict['elastomer_left'][0].clone().cpu().numpy()
