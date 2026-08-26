@@ -469,6 +469,14 @@ class DrawerTaskPulling(TacSLTaskImageAugmentation, TacSLFrankaControl, DrawerEn
                     marker_displacement_dict = self.get_force_fields_dict(self.drawer_handle_quat, self.drawer_handle_pos) # hydrofots
                 elif self.cfg_task.env.get("use_fots_model", False) or self.cfg_task.env.get("use_old_fots_model", False):
                     marker_displacement_dict = self.get_displacement_field_dict(self.drawer_handle_quat, self.drawer_handle_pos) # fots
+                else:
+                    raise ValueError(
+                        "use_shear_force is on but no tactile backend is selected, so there is "
+                        "no field to read. Set exactly one of use_tacsl_shear, use_hydrosoft_model, "
+                        "use_fots_model or use_old_fots_model, or turn the tactile mode off "
+                        "(task.env.student_tactile_mode=False). Without this the next line "
+                        "dereferences an unbound dict."
+                    )
                 
                 if self.cfg_task.env.use_tactile_field_obs and not self.cfg_task.env.get('use_tacsl_shear', False):
                     for k in ['elastomer_left', 'elastomer_right']:
