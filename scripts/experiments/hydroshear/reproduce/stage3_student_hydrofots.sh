@@ -4,10 +4,12 @@
 # at 37M (bin packing) and 85M (peg). Measured here: ~1,200 env-steps/s, so 165M is ~38 h.
 # GATE: refuses to distil a teacher below GATE (a collapsed teacher makes a useless student).
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+# NENV is inert: both entry points overwrite numEnvs after hydra composes (see README)
 NENV="${NENV:-256}"; MAX_STEPS="${MAX_STEPS:-165000000}"; WALL="${WALL:-24h}"; GATE="${GATE:-0.80}"; RUN="${RUN:-drawer_student_hydrofots}"
 CKPT="${CKPT:-$(best_ckpt drawer_teacher_stage2)}"; [ -z "$CKPT" ] && { echo "no stage-2 checkpoint"; exit 1; }
 SR="$(basename "$CKPT" | sed -E 's/best_sr_([0-9.]+)\.pth/\1/')"
 python3 -c "import sys; sys.exit(0 if float('$SR') >= float('$GATE') else 1)" || { echo "GATE FAILED: teacher sr=$SR < $GATE"; exit 2; }
+warn_inert_nenv 256
 echo "stage3: envs=$NENV max_steps=$MAX_STEPS wall=$WALL teacher=$CKPT (sr=$SR)"
 timeout "$WALL" python3 scripts/experiments/hydroshear/train_student_aacd.py \
     train=hydroshear/drawer_pulling/student_lstm task=DrawerTaskPullingStudent \
