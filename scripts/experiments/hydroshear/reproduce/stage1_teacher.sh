@@ -3,7 +3,9 @@
 # headless, and bounded by WALL (wall clock, not agent steps: throughput varies 10x by stage).
 # Measured: 1024 envs reach success 1.00 in ~112 epochs.
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+# NENV is inert: both entry points overwrite numEnvs after hydra composes (see README)
 NENV="${NENV:-1024}"; WALL="${WALL:-2h}"; RUN="${RUN:-drawer_teacher_stage1}"
+warn_inert_nenv 1024
 timeout "$WALL" python3 scripts/experiments/hydroshear/train_teacher.py \
     train=hydroshear/drawer_pulling/teacher_lstm task=DrawerTaskPulling \
     wandb_name="$RUN" task.env.numEnvs="$NENV" wandb_activate=False headless=True \
