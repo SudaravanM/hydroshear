@@ -123,6 +123,23 @@ def main(cfg: DictConfig):
     )
     env.reset()
 
+    # RS_C0_PRODUCER: matched C(0) TRAINING calibration (GT-PREF-007's open limitation).
+    # Replaces ONLY the tactile field producer with a zero-cost stand-in of identical shape,
+    # dtype and device. Everything else is untouched and still runs: tactile CNNs, actor,
+    # critic, AACD teacher, stochastic action sampling, experience buffer, PPO updates, resets.
+    # T_train(B) - T_train(C0) then gives the producer cost measured IN TRAINING CONTEXT,
+    # rather than borrowed from a differently-scoped rollout run.
+    # Absent unless the env var is set, so existing runs are bit-identical.
+    if os.environ.get("RS_C0_PRODUCER"):
+        import sys as _sys
+        _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from tactile_backend_seam import LatencyDummyBackend
+        _c0 = LatencyDummyBackend(env.num_envs, env.device, latency_ms=0.0)
+        env.get_force_fields_dict = _c0.get_force_fields_dict
+        print("[RS_C0_PRODUCER] tactile producer -> zero-cost stand-in. "
+              "THROUGHPUT CALIBRATION ONLY; the learning outcome of this run is meaningless.",
+              flush=True)
+
     rl_output_dir = os.environ["RL_OUTPUT_PATH"] if "RL_OUTPUT_PATH" in os.environ else "./outputs"
     task_name = cfg.task_name
     output_dir = os.path.join(rl_output_dir, "1_hydroshear", task_name, cfg.wandb_name)
